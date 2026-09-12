@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict
+from typing import Optional, Dict
 from app.db.session import get_db
 from app.models.college import College
 from app.schemas.college import CollegeList, CollegeDetail
@@ -30,11 +30,12 @@ async def list_colleges(
 
     total = query.count()
     items = query.offset((page - 1) * limit).limit(limit).all()
+    serializable_items = [CollegeList.model_validate(item).model_dump() for item in items]
 
     return {
         "status": "success",
         "data": {
-            "items": items,
+            "items": serializable_items,
             "pagination": {
                 "total": total,
                 "page": page,
@@ -48,4 +49,4 @@ async def get_college(college_id: str, db: Session = Depends(get_db)):
     college = db.query(College).filter(College.id == college_id).first()
     if not college:
         raise HTTPException(status_code=404, detail="College not found")
-    return college
+    return CollegeDetail.model_validate(college).model_dump()

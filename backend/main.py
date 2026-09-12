@@ -2,6 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.colleges import router as colleges_router
 from app.api.tools import router as tools_router
+from app.db.session import Base, engine
+
+# Import models so SQLAlchemy registers all tables before schema creation
+from app.models import college, course, review  # noqa: F401
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="College Discovery Platform API",
